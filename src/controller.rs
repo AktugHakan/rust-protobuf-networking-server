@@ -82,7 +82,7 @@ pub fn button_interrupt() -> Response {
     new_resp
 }
 
-pub fn file(filename: &str) -> (Response, Option<File>) {
+pub fn file(filename: &str) -> (Response, Option<File>, bool) {
     let mut new_resp = Response::default();
     if filename.contains('/') || filename.contains('\\') || filename.contains("../") {
         let _ = new_resp
@@ -92,7 +92,7 @@ pub fn file(filename: &str) -> (Response, Option<File>) {
                 size: 0,
                 status: false,
             }));
-        return (new_resp, None);
+        return (new_resp, None, false);
     }
     let filename = filename.trim();
     let filename_full =
@@ -104,6 +104,7 @@ pub fn file(filename: &str) -> (Response, Option<File>) {
         Ok(file) => file,
         Err(err) => match err.kind() {
             ErrorKind::NotFound => {
+                println!("User demanded non-existing file '{}'", filename);
                 let _ = new_resp
                     .response_type
                     .insert(ResponseType::FileHeader(FileHeader {
@@ -111,7 +112,7 @@ pub fn file(filename: &str) -> (Response, Option<File>) {
                         size: 0,
                         status: false,
                     }));
-                return (new_resp, None);
+                return (new_resp, None, false);
             }
             _ => {
                 let _ = new_resp
@@ -121,12 +122,12 @@ pub fn file(filename: &str) -> (Response, Option<File>) {
                         size: 0,
                         status: false,
                     }));
-                return (new_resp, None);
+                return (new_resp, None, false);
             }
         },
     };
 
-    (get_file_header_response(filename, &file), Some(file))
+    (get_file_header_response(filename, &file), Some(file), true)
 }
 
 fn get_file_header_response(filename: &str, file: &File) -> Response {

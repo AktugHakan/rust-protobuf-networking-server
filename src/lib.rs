@@ -1,6 +1,7 @@
 pub mod controller;
 pub mod led_driver;
 pub mod proto;
+pub mod server;
 
 pub mod protocom {
     pub mod request {
