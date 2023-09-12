@@ -31,7 +31,9 @@ fn send_file(mut file: std::fs::File, socket: &mut TcpStream) {
     let _ = file_pb
         .response_type
         .insert(crate::protocom::response::response::ResponseType::File(
-            crate::protocom::response::File { file: file_buf },
+            crate::protocom::response::File {
+                file: Some(file_buf),
+            },
         ));
 
     proto::send_response(file_pb, socket);

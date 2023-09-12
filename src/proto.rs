@@ -29,11 +29,11 @@ pub fn decode_request_or_panic(msg: &[u8]) -> Command {
         return Command::Exit;
     }
     match req.request_type.unwrap() {
-        RequestType::Ledctrl(led_control) => Command::Led(led_control.enable),
+        RequestType::Ledctrl(led_control) => Command::Led(led_control.enable.unwrap()),
         RequestType::Info(_) => Command::Info,
-        RequestType::Btnint(btnint) => Command::BtnInterrupt(btnint.timeout_us),
-        RequestType::File(file_info) => Command::File(file_info.file_name),
-        RequestType::FileAccept(accept) => Command::FileAccept(accept.accept),
+        RequestType::Btnint(btnint) => Command::BtnInterrupt(btnint.timeout_us.unwrap()),
+        RequestType::File(file_info) => Command::File(file_info.file_name.unwrap()),
+        RequestType::FileAccept(accept) => Command::FileAccept(accept.accept.unwrap()),
     }
 }
 

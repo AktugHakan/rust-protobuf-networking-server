@@ -46,7 +46,7 @@ pub fn led(enable: bool) -> Response {
     let is_successful = led_driver::set_leds(enable);
 
     let _ = new_resp.response_type.insert(ResponseType::Status(Status {
-        status: is_successful,
+        status: Some(is_successful),
     }));
 
     new_resp
@@ -67,7 +67,10 @@ pub fn info(socket: &TcpStream) -> Response {
 
     let _ = new_resp
         .response_type
-        .insert(ResponseType::ServerInfo(ServerInfo { ip: ip, port: port }));
+        .insert(ResponseType::ServerInfo(ServerInfo {
+            ip: Some(ip),
+            port: Some(port),
+        }));
 
     new_resp
 }
@@ -75,9 +78,9 @@ pub fn info(socket: &TcpStream) -> Response {
 // BUTTON INTERRUPT DETECTION NOT WORKING
 pub fn button_interrupt() -> Response {
     let mut new_resp = Response::default();
-    let _ = new_resp
-        .response_type
-        .insert(ResponseType::Status(Status { status: false }));
+    let _ = new_resp.response_type.insert(ResponseType::Status(Status {
+        status: Some(false),
+    }));
 
     new_resp
 }
@@ -88,9 +91,9 @@ pub fn file(filename: &str) -> (Response, Option<File>, bool) {
         let _ = new_resp
             .response_type
             .insert(ResponseType::FileHeader(FileHeader {
-                name: "Invalid filename.".to_string(),
-                size: 0,
-                status: false,
+                name: Some("Invalid filename.".to_string()),
+                size: Some(0),
+                status: Some(false),
             }));
         return (new_resp, None, false);
     }
@@ -108,9 +111,9 @@ pub fn file(filename: &str) -> (Response, Option<File>, bool) {
                 let _ = new_resp
                     .response_type
                     .insert(ResponseType::FileHeader(FileHeader {
-                        name: "File not found.".to_string(),
-                        size: 0,
-                        status: false,
+                        name: Some("File not found.".to_string()),
+                        size: Some(0),
+                        status: Some(false),
                     }));
                 return (new_resp, None, false);
             }
@@ -118,9 +121,9 @@ pub fn file(filename: &str) -> (Response, Option<File>, bool) {
                 let _ = new_resp
                     .response_type
                     .insert(ResponseType::FileHeader(FileHeader {
-                        name: ("Internal error:".to_string()) + &err.to_string(),
-                        size: 0,
-                        status: false,
+                        name: Some(("Internal error:".to_string()) + &err.to_string()),
+                        size: Some(0),
+                        status: Some(false),
                     }));
                 return (new_resp, None, false);
             }
@@ -136,9 +139,9 @@ fn get_file_header_response(filename: &str, file: &File) -> Response {
     let _ = new_resp
         .response_type
         .insert(ResponseType::FileHeader(FileHeader {
-            name: filename.to_string(),
-            size: file_size,
-            status: true,
+            name: Some(filename.to_string()),
+            size: Some(file_size),
+            status: Some(true),
         }));
     new_resp
 }
