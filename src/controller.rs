@@ -7,6 +7,7 @@ use std::{
 use crate::{
     led_driver,
     protocom::response::{response::ResponseType, FileHeader, Response, ServerInfo, Status},
+    MB,
 };
 
 pub trait PeerSocketInfo {
@@ -94,6 +95,7 @@ pub fn file(filename: &str) -> (Response, Option<File>, bool) {
                 name: Some("Invalid filename.".to_string()),
                 size: Some(0),
                 status: Some(false),
+                segment_count: None,
             }));
         return (new_resp, None, false);
     }
@@ -114,6 +116,7 @@ pub fn file(filename: &str) -> (Response, Option<File>, bool) {
                         name: Some("File not found.".to_string()),
                         size: Some(0),
                         status: Some(false),
+                        segment_count: None,
                     }));
                 return (new_resp, None, false);
             }
@@ -124,6 +127,7 @@ pub fn file(filename: &str) -> (Response, Option<File>, bool) {
                         name: Some(("Internal error:".to_string()) + &err.to_string()),
                         size: Some(0),
                         status: Some(false),
+                        segment_count: None,
                     }));
                 return (new_resp, None, false);
             }
@@ -142,6 +146,7 @@ fn get_file_header_response(filename: &str, file: &File) -> Response {
             name: Some(filename.to_string()),
             size: Some(file_size),
             status: Some(true),
+            segment_count: Some((file_size + (MB - 100 + 1)) / (MB - 100)),
         }));
     new_resp
 }

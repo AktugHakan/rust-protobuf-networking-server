@@ -1,11 +1,11 @@
-use std::{
-    io::{Read, Write},
-    net::TcpStream,
-};
+use std::{io::ErrorKind, net::TcpStream};
 
 use prost::Message;
 
-use crate::protocom::request::{self, request::RequestType};
+use crate::{
+    network::TcpWithSize,
+    protocom::request::{self, request::RequestType},
+};
 
 pub enum Command {
     Led(bool),
@@ -13,6 +13,7 @@ pub enum Command {
     BtnInterrupt(u32),
     File(String),
     FileAccept(bool),
+    FileAck(Option<u64>),
     Exit,
 }
 
@@ -34,18 +35,24 @@ pub fn decode_request_or_panic(msg: &[u8]) -> Command {
         RequestType::Btnint(btnint) => Command::BtnInterrupt(btnint.timeout_us.unwrap()),
         RequestType::File(file_info) => Command::File(file_info.file_name.unwrap()),
         RequestType::FileAccept(accept) => Command::FileAccept(accept.accept.unwrap()),
+        RequestType::FileAck(next) => Command::FileAck(next.next),
     }
 }
 
 pub fn send_response<ProtoMessage: Message>(msg: ProtoMessage, socket: &mut TcpStream) {
     let mut message: Vec<u8> = Vec::with_capacity(msg.encoded_len());
     msg.encode(&mut message).unwrap();
-    socket.write(&message).unwrap();
+    socket.send(&message).expect("Couldn't send message.");
 }
 
 pub fn recieve_request(socket: &mut TcpStream) -> Command {
-    let mut request: Vec<u8> = vec![0; 1024];
-    let msg_len = socket.read(&mut request).unwrap();
-    let request = &request[..msg_len];
-    decode_request_or_panic(request)
+    let req = socket.recieve();
+    let req = match req {
+        Ok(req) => req,
+        Err(err) => match err.kind() {
+            ErrorKind::UnexpectedEof => return Command::Exit,
+            _ => panic!("Data transfer error"),
+        },
+    };
+    decode_request_or_panic(&req)
 }
