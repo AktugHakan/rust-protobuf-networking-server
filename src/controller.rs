@@ -100,9 +100,7 @@ pub fn file(filename: &str) -> (Response, Option<File>, bool) {
         return (new_resp, None, false);
     }
     let filename = filename.trim();
-    let filename_full =
-        std::path::Path::new("/home/ahmet/Documents/RustProtobufNetworking/server/file_storage")
-            .join(filename);
+    let filename_full = std::path::Path::new("file_storage/").join(filename);
     println!("FULL PATH:{}", filename_full.to_str().unwrap());
     let demanded_file = File::open(filename_full.to_str().unwrap());
     let file = match demanded_file {
