@@ -32,8 +32,8 @@ pub fn send_file(mut file: std::fs::File, socket: &mut TcpStream) {
         } else {
             break;
         }
-        println!("Transfer complete!");
     }
+    println!("Transfer complete!");
 }
 
 pub fn file_transfer_routine(socket: &mut TcpStream, filename: String) {
