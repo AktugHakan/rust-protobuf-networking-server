@@ -21,7 +21,8 @@ pub enum Response {
     Status,
     Info(String),
     FileHeader(String, u64, bool),
-    File(), // TODO: type of byte array
+    File(),
+    FileHash([u8; 32]),
 }
 
 pub fn decode_request_or_panic(msg: &[u8]) -> Command {

@@ -6,7 +6,9 @@ use std::{
 
 use crate::{
     led_driver,
-    protocom::response::{response::ResponseType, FileHeader, Response, ServerInfo, Status},
+    protocom::response::{
+        response::ResponseType, FileHash, FileHeader, Response, ServerInfo, Status,
+    },
     MB,
 };
 
@@ -49,6 +51,15 @@ pub fn led(enable: bool) -> Response {
     let _ = new_resp.response_type.insert(ResponseType::Status(Status {
         status: Some(is_successful),
     }));
+
+    new_resp
+}
+
+pub fn file_hash(hash: Vec<u8>) -> Response {
+    let mut new_resp = Response::default();
+    let _ = new_resp
+        .response_type
+        .insert(ResponseType::FileHash(FileHash { digest: Some(hash) }));
 
     new_resp
 }

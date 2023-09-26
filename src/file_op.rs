@@ -9,12 +9,14 @@ use crate::{
     MB,
 };
 
-pub fn send_file(mut file: std::fs::File, socket: &mut TcpStream) {
+use sha2::{Digest, Sha256};
+
+fn send_file(file: &mut std::fs::File, socket: &mut TcpStream) {
     loop {
         if let Command::FileAck(next) = proto::recieve_request(socket) {
             if next.is_some() {
                 let next = next.unwrap();
-                let file_seg = get_file_segment(&mut file, next);
+                let file_seg = get_file_segment(file, next);
                 let mut file_pb = crate::protocom::response::Response::default();
                 let _ = file_pb.response_type.insert(
                     crate::protocom::response::response::ResponseType::File(
@@ -36,13 +38,27 @@ pub fn send_file(mut file: std::fs::File, socket: &mut TcpStream) {
     println!("Transfer complete!");
 }
 
+fn send_md5(file: &mut std::fs::File, socket: &mut TcpStream) {
+    file.seek(SeekFrom::Start(0)).unwrap();
+    let mut hasher = Sha256::new();
+    let mut buffer = Vec::with_capacity(file.metadata().unwrap().len() as usize);
+    file.read_to_end(&mut buffer).unwrap();
+    hasher.update(buffer);
+
+    let file_hash = hasher.finalize().to_vec();
+    let resp = controller::file_hash(file_hash);
+    send_response(resp, socket);
+}
+
 pub fn file_transfer_routine(socket: &mut TcpStream, filename: String) {
     let file = controller::file(&filename);
     send_response(file.0, socket);
     if file.2 {
         if let proto::Command::FileAccept(accept) = recieve_request(socket) {
             if accept {
-                crate::file_op::send_file(file.1.unwrap(), socket);
+                let mut file = file.1.unwrap();
+                send_file(&mut file, socket);
+                send_md5(&mut file, socket);
             }
         } else {
             panic!("Expected a file accept, got another command type.");
