@@ -3,7 +3,6 @@ use std::net::TcpStream;
 use crate::{
     controller::{self, PeerSocketInfo},
     proto::{self, recieve_request, Command},
-    protocom,
 };
 
 pub fn socket_handler(mut socket: TcpStream) {
